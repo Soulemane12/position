@@ -1,8 +1,10 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue; // Correct import
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Motor extends SubsystemBase {
@@ -12,8 +14,11 @@ public class Motor extends SubsystemBase {
     public Motor(int motorCANID) {
         krakenMotor = new TalonFX(motorCANID);
 
-        // Initialize motor settings (e.g., neutral mode, sensor phase)
-        krakenMotor.setInverted(false); // Adjust as needed
+        TalonFXConfiguration config = new TalonFXConfiguration();
+
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; 
+
+        krakenMotor.getConfigurator().apply(config);
     }
 
     public void setMotorSpeed(double speed) {
@@ -25,10 +30,18 @@ public class Motor extends SubsystemBase {
     }
 
     public void setMotorPosition(double degrees) {
-        // Convert degrees to encoder ticks
         double targetTicks = (degrees / 360.0) * TICKS_PER_REVOLUTION;
-
-        // Set position using PositionVoltage control
-        krakenMotor.setControl(new PositionVoltage(targetTicks, true));
+    
+        // just finetune
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.Slot0.kP = 0.1; 
+        config.Slot0.kI = 0.0;
+        config.Slot0.kD = 0.0;
+    
+        krakenMotor.getConfigurator().apply(config);
+    
+        PositionVoltage positionControl = new PositionVoltage(targetTicks);
+        krakenMotor.setControl(positionControl);
     }
+    
 }
